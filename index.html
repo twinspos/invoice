@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice TWINS POS</title>
+<style>
+:root{--blue:#1554d1;--blue2:#0b3a99;--cyan:#7fe3ff;--bg:#f3f6fb;--line:#dfe5ef;--txt:#1b2433;--mut:#6b778a;--red:#d23b3b;--green:#16a34a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+header{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+header b{font-size:16px;letter-spacing:.5px}
+header small{display:block;opacity:.8;font-size:11px}
+nav{display:flex;gap:6px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);padding:8px 12px}
+nav button{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:8px;white-space:nowrap;cursor:pointer;font-size:13px;color:var(--txt)}
+nav button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+main{max-width:900px;margin:0 auto;padding:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+h2{font-size:16px;margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;background:#fff}
+textarea{min-height:60px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.btn{border:0;background:var(--blue);color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+.btn.sec{background:#eef2f9;color:var(--txt)}
+.btn.green{background:var(--green)}
+.btn.red{background:#fdecec;color:var(--red)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fafcff}
+.item .grid3{display:grid;grid-template-columns:2fr 1fr 1.3fr auto;gap:8px;align-items:end}
+@media(max-width:600px){.item .grid3{grid-template-columns:1fr 1fr}.item .grid3>div:first-child{grid-column:1/-1}}
+.total{display:flex;justify-content:space-between;font-size:16px;font-weight:700;padding:10px 0;border-top:1px dashed var(--line);margin-top:6px}
+.list .li{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;background:#fff}
+.li .top{display:flex;justify-content:space-between;gap:8px}
+.li .no{font-weight:700}
+.li .mut{color:var(--mut);font-size:12px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+.b-unpaid{background:#fff3e0;color:#c66a00}
+.b-paid{background:#e6f7ec;color:var(--green)}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+.search{margin-bottom:10px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,20,40,.5);display:none;align-items:flex-start;justify-content:center;padding:20px 10px;overflow:auto;z-index:50}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:12px;width:100%;max-width:440px;padding:16px}
+/* preview dokumen */
+#viewWrap{background:#e9edf4;padding:12px}
+.doc{background:#fff;max-width:794px;margin:0 auto;color:#0f172a;position:relative;box-shadow:0 8px 30px rgba(15,23,42,.10);border-radius:14px;overflow:hidden;font-size:13px}
+.doc *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.doc .hero{background:linear-gradient(135deg,#1e6bff 0%,#0b3a99 70%,#08296e 100%);color:#fff;padding:28px 36px 26px;position:relative;overflow:hidden}
+.doc .hero:after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(127,227,255,.14)}
+.doc .hero:before{content:"";position:absolute;right:90px;bottom:-90px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06)}
+.doc .hero .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;position:relative;z-index:1}
+.doc .brand{display:flex;gap:12px;align-items:center}
+.doc .brand b{font-size:19px;letter-spacing:.5px}
+.doc .brand small{display:block;opacity:.85;font-size:11px;line-height:1.45}
+.doc .ttl{text-align:right}
+.doc .ttl h1{margin:0;font-size:26px;font-weight:800;letter-spacing:2px}
+.doc .ttl .no{font-size:12px;opacity:.9;margin-top:4px}
+.doc .pill{display:inline-block;margin-top:10px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:1.5px}
+.doc .pill.paid{background:#22c55e;color:#fff}
+.doc .pill.unpaid{background:#fbbf24;color:#4a2c00}
+.doc .body{padding:26px 36px 30px}
+.doc .meta{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin-bottom:22px}
+.doc .box{background:#f4f7fd;border:1px solid #e3eaf6;border-radius:12px;padding:12px 14px}
+.doc .k{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:5px}
+.doc .v{font-size:13px;line-height:1.5}
+.doc .v b{font-size:15px}
+.doc table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e3eaf6;border-radius:12px;overflow:hidden}
+.doc th{background:#eef3fc;color:#0b3a99;font-size:11px;text-transform:uppercase;letter-spacing:.8px;text-align:left;padding:11px 14px}
+.doc td{padding:12px 14px;border-top:1px solid #eef1f6;vertical-align:top}
+.doc td .sub{font-size:11px;color:#64748b;margin-top:2px}
+.doc .r{text-align:right}
+.doc .bottom{display:flex;gap:16px;margin-top:18px;align-items:stretch}
+.doc .bottom .left{flex:1}
+.doc .totalbox{width:280px;background:linear-gradient(135deg,#1e6bff,#0b3a99);color:#fff;border-radius:12px;padding:16px 18px}
+.doc .totalbox .line{display:flex;justify-content:space-between;font-size:12px;opacity:.9;padding:3px 0}
+.doc .totalbox .big{font-size:24px;font-weight:800;margin-top:6px}
+.doc .pay{display:flex;gap:10px;flex-wrap:wrap}
+.doc .pay .box{flex:1;min-width:150px}
+.doc .pay img{width:110px;height:110px;object-fit:contain;background:#fff;border-radius:8px;margin-top:6px}
+.doc .okbox{background:#ecfdf3;border:1px solid #bbf0cf;border-radius:12px;padding:12px 14px;color:#14532d;line-height:1.5}
+.doc .sk{margin-top:20px;font-size:11px;color:#475569;line-height:1.55;border-top:1px dashed #d6deeb;padding-top:14px}
+.doc .sk ol{margin:6px 0 0;padding-left:18px}
+.doc .sign{display:flex;justify-content:flex-end;margin-top:24px;text-align:center;font-size:12px;color:#475569}
+.doc .sign .sp{height:56px}
+.doc .sign b{color:#0f172a;display:block;border-top:1px solid #cbd5e1;padding-top:6px;min-width:170px}
+.doc .foot{background:#0b3a99;color:#cfe0ff;text-align:center;font-size:11px;padding:10px;letter-spacing:.5px}
+@media(max-width:600px){.doc{font-size:12px}.doc .hero{padding:20px 16px}.doc .body{padding:18px 16px}.doc .ttl h1{font-size:18px}.doc .meta{grid-template-columns:1fr 1fr}.doc .meta .box:first-child{grid-column:1/-1}.doc .bottom{flex-direction:column-reverse}.doc .totalbox{width:auto}}
+.viewbar{max-width:794px;margin:0 auto 10px}
+@media print{
+  @page{size:A4;margin:10mm}
+  body{background:#fff}
+  header,nav,.no-print,.viewbar{display:none!important}
+  main{padding:0;max-width:none}
+  #viewWrap{background:#fff;padding:0}
+  .doc{box-shadow:none;max-width:none;border-radius:0}
+  .doc th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc .note,.doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.hide{display:none!important}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1b2433;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:none;z-index:99}
+</style>
+</head>
+<body>
+
+<header class="no-print">
+  <svg width="34" height="34" viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7bff"/><stop offset="1" stop-color="#0b3a99"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lg)"/><text x="10" y="44" font-family="Arial Black,Arial" font-weight="900" font-style="italic" font-size="30" fill="#fff">T</text><text x="27" y="44" font-family="Arial Black,Arial" font-weight="900" font-size="26" fill="#7fe3ff">W</text></svg>
+  <div style="flex:1"><b>TWINS POS</b><small>Aplikasi Invoice Langganan</small></div>
+  <span id="connStat" style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.18)">Lokal</span>
+</header>
+
+<nav class="no-print" id="nav">
+  <button data-m="buat" class="on">Buat Proforma</button>
+  <button data-m="proforma">Proforma Belum Lunas</button>
+  <button data-m="lunas">Invoice Lunas</button>
+  <button data-m="setting">Pengaturan</button>
+</nav>
+
+<main>
+  <!-- MENU: BUAT PROFORMA -->
+  <section id="m-buat">
+    <div class="card">
+      <h2 id="formTitle">Buat Proforma Invoice</h2>
+      <div class="grid2">
+        <div><label>Nomor Invoice</label><input id="fNo"></div>
+        <div><label>Tanggal</label><input id="fTgl" type="date"></div>
+        <div><label>Jatuh Tempo</label><input id="fJt" type="date"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Data Klien</h2>
+      <div class="grid2">
+        <div><label>Nama Outlet</label><input id="fOutlet" placeholder="cth. Kopi Senja"></div>
+        <div><label>Nomor HP</label><input id="fHp" inputmode="tel" placeholder="08xxxxxxxxxx"></div>
+        <div><label>Nama Owner</label><input id="fOwner"></div>
+      </div>
+      <label>Alamat</label><textarea id="fAlamat"></textarea>
+    </div>
+    <div class="card">
+      <h2>Rincian Paket</h2>
+      <div id="items"></div>
+      <label>Tambah produk:</label>
+      <div class="row" id="prodBtns"></div>
+      <div class="total"><span>Total</span><span id="fTotal">Rp 0</span></div>
+      <label>Catatan (opsional)</label><textarea id="fCatatan"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="simpan()">Simpan Proforma</button>
+      <button class="btn sec" id="btnBatal" onclick="resetForm()">Kosongkan</button>
+    </div>
+  </section>
+
+  <!-- MENU: PROFORMA BELUM LUNAS -->
+  <section id="m-proforma" class="hide">
+    <div class="card">
+      <h2>Proforma Belum Lunas</h2>
+      <input class="search" id="qPro" placeholder="Cari nomor / outlet / owner..." oninput="renderList()">
+      <div class="list" id="listPro"></div>
+    </div>
+  </section>
+
+  <!-- MENU: INVOICE LUNAS -->
+  <section id="m-lunas" class="hide">
+    <div class="card">
+      <h2>Invoice Lunas</h2>
+      <input class="search" id="qLun" placeholder="Cari nomor / outlet / owner..." oninput="renderList()">
+      <div class="list" id="listLun"></div>
+    </div>
+  </section>
+
+  <!-- MENU: PENGATURAN KOP -->
+  <section id="m-setting" class="hide">
+    <div class="card">
+      <h2>Koneksi Google Sheet</h2>
+      <p style="color:var(--mut);font-size:12px;margin-top:0">Isi sekali di setiap HP/laptop. Setelah tersambung, invoice dan pengaturan sama di semua perangkat.</p>
+      <label>URL Web App</label><input id="cUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      <label>Token</label><input id="cTok" placeholder="sama dengan TOKEN di Code.gs">
+      <div class="row" style="margin-top:12px"><button class="btn" onclick="simpanConn()">Simpan &amp; Tes Koneksi</button><button class="btn red" onclick="putusConn()">Putuskan</button></div>
+    </div>
+    <div class="card">
+      <h2>Pengaturan Kop Invoice</h2>
+      <label>Nama Usaha</label><input id="sNama">
+      <label>Alamat</label><textarea id="sAlamat"></textarea>
+      <div class="grid2">
+        <div><label>No. HP / WA</label><input id="sHp"></div>
+        <div><label>Email / Website</label><input id="sWeb"></div>
+      </div>
+      <label>Metode 1 – Transfer: Rekening Bank (tampil di proforma)</label><textarea id="sRek" placeholder="cth. BCA 1234567890 a.n. Riki Hidayat"></textarea>
+      <label>Metode 2 – QRIS: Gambar QRIS (tampil di proforma)</label>
+      <div class="row"><img id="sQrisImg" class="hide" style="width:120px;height:120px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">
+        <label class="btn sec sm" style="margin:0;color:var(--txt)">Pilih Gambar QRIS<input type="file" accept="image/*" class="hide" onchange="pilihQris(this)"></label>
+        <button class="btn red sm" onclick="tmpQris='';showQris()">Hapus QRIS</button></div>
+      <label>Nama Penanda Tangan</label><input id="sTtd">
+      <div class="grid2">
+        <div><label>Awalan Nomor Proforma</label><input id="sPfxP"></div>
+        <div><label>Awalan Nomor Invoice Lunas</label><input id="sPfxL"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Produk &amp; Harga</h2>
+      <p style="color:var(--mut);font-size:12px;margin-top:0">Harga di sini dipakai otomatis saat membuat proforma. Kalau ada kenaikan harga, ubah di sini. Invoice lama tidak ikut berubah.</p>
+      <div id="prodList"></div>
+      <button class="btn sec sm" onclick="tmpProd.push({nama:'',periode:'',harga:0});renderProd()">+ Tambah Produk</button>
+    </div>
+    <div class="card">
+      <h2>Syarat &amp; Ketentuan</h2>
+      <p style="color:var(--mut);font-size:12px;margin-top:0">Tercetak di bagian bawah proforma dan invoice. Satu baris = satu poin.</p>
+      <textarea id="sSk" style="min-height:170px"></textarea>
+    </div>
+    <div class="row"><button class="btn" onclick="simpanSetting()">Simpan Pengaturan</button></div>
+  </section>
+
+  <!-- TAMPILAN DOKUMEN -->
+  <section id="m-view" class="hide">
+    <div class="viewbar row no-print">
+      <button class="btn sec" onclick="backFromView()">← Kembali</button>
+      <button class="btn" onclick="window.print()">Cetak / Simpan PDF</button>
+      <button class="btn green hide" id="vBayar">Catat Pembayaran</button>
+    </div>
+    <div id="viewWrap"><div class="doc" id="doc"></div></div>
+  </section>
+</main>
+
+<!-- MODAL PEMBAYARAN -->
+<div class="modal" id="mdBayar">
+  <div class="box">
+    <h2>Catat Pembayaran</h2>
+    <div id="bInfo" style="font-size:13px;color:var(--mut)"></div>
+    <label>Tanggal Bayar</label><input type="date" id="bTgl">
+    <label>Metode</label>
+    <select id="bMetode"><option>Transfer</option><option>QRIS</option></select>
+    <label>Keterangan (opsional)</label><input id="bKet" placeholder="cth. dari rek. BCA a.n. ... / ref QRIS">
+    <p style="font-size:12px;color:var(--mut)">Setelah disimpan, proforma berubah menjadi <b>Invoice Lunas</b> dengan nomor invoice baru.</p>
+    <div class="row">
+      <button class="btn green" onclick="prosesBayar()">Simpan, Jadikan Lunas</button>
+      <button class="btn sec" onclick="tutupModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="busy" style="position:fixed;inset:0;background:rgba(10,20,40,.35);display:none;align-items:center;justify-content:center;z-index:98;color:#fff;font-weight:600"></div>
+
+<script>
+// ===== Penyimpanan =====
+const KEY='twins_invoice_v1';
+let mem=null;
+function load(){
+  try{const s=localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){}
+  return mem||{invoices:[],setting:{nama:'TWINS POS',alamat:'',hp:'',web:'s.twinspos.web.id',rek:'',ttd:'',pfxP:'PI/TWS',pfxL:'INV/TWS',produk:defProd()}};
+}
+function defProd(){return[
+  {nama:'Lisensi TWINS POS Basic',periode:'Sekali Bayar (Lifetime)',harga:600000},
+  {nama:'Add-On Fitur Pro',periode:'1 Tahun',harga:400000},
+  {nama:'Add-On Fitur Pro',periode:'2 Tahun',harga:700000},
+  {nama:'Add-On Fitur Pro',periode:'3 Tahun',harga:900000}]}
+const DEF_SK=['Lisensi Basic berlaku selamanya untuk 1 outlet dan tidak dapat dipindahtangankan.',
+'Add-On Fitur Pro berlaku sesuai periode yang dibeli. Setelah habis, fitur Pro terkunci, namun aplikasi kasir tetap dapat digunakan dan data tidak hilang.',
+'Perpanjangan Fitur Pro mengikuti harga yang berlaku saat perpanjangan.',
+'Pembayaran yang sudah diterima tidak dapat dikembalikan.',
+'Aktivasi dilakukan setelah pembayaran lunas.',
+'Termasuk dukungan teknis via WhatsApp selama Fitur Pro aktif.'].join('\n');
+let DB=load();
+if(!Array.isArray(DB.setting.produk))DB.setting.produk=defProd();
+if(DB.setting.web==='twinspos.web.id')DB.setting.web='s.twinspos.web.id';
+if(typeof DB.setting.sk!=='string')DB.setting.sk=DEF_SK;
+function save(){mem=DB; try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+// ===== Koneksi Google Sheet =====
+const CKEY='twins_invoice_conn';
+let CONN={url:'',token:''};
+try{CONN=Object.assign(CONN,JSON.parse(localStorage.getItem(CKEY)||'{}'))}catch(e){}
+const online=()=>!!(CONN.url&&CONN.token);
+async function api(action,payload){
+  const r=await fetch(CONN.url,{method:'POST',body:JSON.stringify(Object.assign({token:CONN.token,action},payload||{}))});
+  const j=await r.json();
+  return j;
+}
+let busyN=0;
+function busy(on,txt){busyN+=on?1:-1;const b=$('busy');b.textContent=txt||'Memproses...';b.style.display=busyN>0?'flex':'none'}
+function setStatus(t,ok){const e=$('connStat');e.textContent=t;e.style.background=ok?'rgba(34,197,94,.25)':'rgba(255,255,255,.18)'}
+async function syncAll(silent){
+  if(!online()){setStatus('Lokal (belum tersambung)',false);return false}
+  if(!silent)busy(true,'Memuat data...');
+  try{
+    const j=await api('getAll');
+    if(!j.ok)throw new Error(j.error||'Gagal');
+    DB.invoices=(j.invoices||[]).sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+    if(j.setting&&j.setting.nama){DB.setting=Object.assign({},DB.setting,j.setting)}
+    else{await api('saveSetting',{setting:DB.setting})}
+    if(!Array.isArray(DB.setting.produk))DB.setting.produk=defProd();
+    save();setStatus('Tersambung Google Sheet',true);
+    if(curMenu==='proforma'||curMenu==='lunas')renderList();
+    renderProdBtns();
+    return true;
+  }catch(e){setStatus('Gagal tersambung',false);if(!silent)toast('Gagal memuat dari Google Sheet');return false}
+  finally{if(!silent)busy(false)}
+}
+
+// ===== Util =====
+const $=id=>document.getElementById(id);
+const rp=n=>'Rp '+(Math.round(+n||0)).toLocaleString('id-ID');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const addDays=(s,n)=>{const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const fmtTgl=s=>{if(!s)return'-';const b=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];const[y,m,d]=s.split('-');return (+d)+' '+b[+m-1]+' '+y};
+const parseNum=v=>+String(v).replace(/[^\d]/g,'')||0;
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',2200)}
+
+function nextNo(type,tgl){
+  const s=DB.setting, pfx=type==='L'?s.pfxL:s.pfxP;
+  const [y,m]=(tgl||today()).split('-');
+  const base=`${pfx}/${y}/${m}/`;
+  const field=type==='L'?'noLunas':'noPro';
+  let max=0;
+  DB.invoices.forEach(i=>{const n=i[field]||'';if(n.startsWith(base)){const k=parseInt(n.slice(base.length));if(k>max)max=k}});
+  return base+String(max+1).padStart(3,'0');
+}
+
+// ===== Navigasi =====
+let curMenu='buat', editId=null, viewId=null, viewFrom='proforma';
+function go(m){
+  curMenu=m;
+  ['buat','proforma','lunas','setting','view'].forEach(x=>$('m-'+x).classList.toggle('hide',x!==m));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  if(m==='proforma'||m==='lunas'){renderList();syncAll(true)}
+  if(m==='setting')fillSetting();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{if(b.dataset.m==='buat'&&!editId)resetForm();go(b.dataset.m)});
+
+// ===== Form Proforma =====
+let items=[];
+function addItem(nama,periode,harga){items.push({nama,periode,harga});renderItems()}
+function renderItems(){
+  $('items').innerHTML=items.map((it,i)=>`
+   <div class="item"><div class="grid3">
+     <div><label>Paket / Deskripsi</label><input value="${esc(it.nama)}" oninput="items[${i}].nama=this.value"></div>
+     <div><label>Periode</label><input value="${esc(it.periode)}" placeholder="cth. 3 Tahun" oninput="items[${i}].periode=this.value"></div>
+     <div><label>Harga (Rp)</label><input inputmode="numeric" value="${it.harga?(+it.harga).toLocaleString('id-ID'):''}" oninput="items[${i}].harga=parseNum(this.value);hitung()" onblur="this.value=items[${i}].harga?items[${i}].harga.toLocaleString('id-ID'):''"></div>
+     <div><button class="btn red sm" onclick="items.splice(${i},1);renderItems()">Hapus</button></div>
+   </div></div>`).join('')||'<div class="empty" style="padding:12px">Belum ada produk. Pilih produk di bawah.</div>';
+  hitung();
+}
+function renderProdBtns(){
+  const P=DB.setting.produk||[];
+  $('prodBtns').innerHTML=P.map((p,i)=>`<button class="btn sec sm" onclick="pickProd(${i})">+ ${esc(p.nama)}${p.periode?' – '+esc(p.periode):''} (${rp(p.harga)})</button>`).join('')+
+   `<button class="btn sec sm" onclick="addItem('','',0)">+ Item Lain</button>`;
+}
+function pickProd(i){const p=DB.setting.produk[i];if(p)addItem(p.nama,p.periode,+p.harga||0)}
+function hitung(){$('fTotal').textContent=rp(items.reduce((a,b)=>a+(+b.harga||0),0))}
+function resetForm(){
+  editId=null;$('formTitle').textContent='Buat Proforma Invoice';
+  const t=today();$('fTgl').value=t;$('fJt').value=addDays(t,7);$('fNo').value=nextNo('P',t);
+  ['fOutlet','fHp','fOwner','fAlamat','fCatatan'].forEach(k=>$(k).value='');
+  items=[];
+  renderItems();renderProdBtns();
+}
+$('fTgl').addEventListener('change',()=>{if(!editId)$('fNo').value=nextNo('P',$('fTgl').value)});
+
+async function simpan(){
+  const d={noPro:$('fNo').value.trim(),tgl:$('fTgl').value,jt:$('fJt').value,outlet:$('fOutlet').value.trim(),hp:$('fHp').value.trim(),owner:$('fOwner').value.trim(),alamat:$('fAlamat').value.trim(),catatan:$('fCatatan').value.trim(),
+    items:items.filter(i=>i.nama.trim()||i.harga).map(i=>({nama:i.nama.trim(),periode:i.periode.trim(),harga:+i.harga||0}))};
+  if(!d.noPro)return toast('Nomor invoice wajib diisi');
+  if(!d.outlet)return toast('Nama outlet wajib diisi');
+  if(!d.items.length)return toast('Isi minimal satu paket');
+  if(DB.invoices.some(i=>i.noPro===d.noPro&&i.id!==editId))return toast('Nomor invoice sudah dipakai');
+  d.total=d.items.reduce((a,b)=>a+b.harga,0);
+  d.id=editId||('i'+Date.now());
+  if(online()){
+    busy(true,'Menyimpan ke Google Sheet...');
+    try{
+      const j=await api('saveInvoice',{inv:d});
+      if(!j.ok){
+        if(j.error==='DUP'){await syncAll(true);if(!editId)$('fNo').value=nextNo('P',d.tgl);return toast(j.msg+'. Nomor sudah diperbarui, simpan lagi.')}
+        return toast(j.error||'Gagal menyimpan');
+      }
+      Object.assign(d,j.inv);
+    }catch(e){return toast('Gagal tersambung. Cek internet lalu coba lagi.')}
+    finally{busy(false)}
+  }
+  const o=DB.invoices.find(i=>i.id===d.id);
+  if(o)Object.assign(o,d);else{d.status='belum';DB.invoices.unshift(d)}
+  save();editId=null;toast('Proforma tersimpan');openView(d.id,'proforma');
+}
+function editInv(id){
+  const o=DB.invoices.find(i=>i.id===id);if(!o)return;
+  editId=id;$('formTitle').textContent='Edit Proforma '+o.noPro;
+  $('fNo').value=o.noPro;$('fTgl').value=o.tgl;$('fJt').value=o.jt||'';$('fOutlet').value=o.outlet;$('fHp').value=o.hp;$('fOwner').value=o.owner;$('fAlamat').value=o.alamat;$('fCatatan').value=o.catatan||'';
+  items=o.items.map(i=>({...i}));renderItems();renderProdBtns();go('buat');
+}
+async function hapusInv(id){
+  const o=DB.invoices.find(i=>i.id===id);if(!o)return;
+  if(!confirm('Hapus proforma '+o.noPro+'?'))return;
+  if(online()){
+    busy(true,'Menghapus...');
+    try{const j=await api('deleteInvoice',{id});if(!j.ok)return toast(j.error||'Gagal menghapus')}
+    catch(e){return toast('Gagal tersambung. Cek internet lalu coba lagi.')}
+    finally{busy(false)}
+  }
+  DB.invoices=DB.invoices.filter(i=>i.id!==id);save();renderList();toast('Dihapus');
+}
+
+// ===== Daftar =====
+function renderList(){
+  const mk=(arr,q,lunas)=>{
+    q=(q||'').toLowerCase();
+    arr=arr.filter(i=>[i.noPro,i.noLunas,i.outlet,i.owner,i.hp].join(' ').toLowerCase().includes(q));
+    if(!arr.length)return `<div class="empty">${lunas?'Belum ada invoice lunas.':'Tidak ada proforma yang belum lunas.'}</div>`;
+    return arr.map(i=>`<div class="li">
+      <div class="top"><div><div class="no">${esc(lunas?i.noLunas:i.noPro)}</div>
+        <div>${esc(i.outlet)}${i.owner?' · '+esc(i.owner):''}</div>
+        <div class="mut">${lunas?'Lunas '+fmtTgl(i.bayar.tgl)+' · '+esc(i.bayar.metode)+' · Ref '+esc(i.noPro):'Tgl '+fmtTgl(i.tgl)+' · Jatuh tempo '+fmtTgl(i.jt)}</div></div>
+        <div style="text-align:right"><span class="badge ${lunas?'b-paid':'b-unpaid'}">${lunas?'LUNAS':'BELUM LUNAS'}</span><div style="font-weight:700;margin-top:6px">${rp(i.total)}</div></div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn sec sm" onclick="openView('${i.id}','${lunas?'lunas':'proforma'}')">Lihat / Cetak</button>
+        ${lunas?'':`<button class="btn green sm" onclick="bukaBayar('${i.id}')">Catat Pembayaran</button>
+        <button class="btn sec sm" onclick="editInv('${i.id}')">Edit</button>
+        <button class="btn red sm" onclick="hapusInv('${i.id}')">Hapus</button>`}
+      </div></div>`).join('');
+  };
+  $('listPro').innerHTML=mk(DB.invoices.filter(i=>i.status!=='lunas'),$('qPro').value,false);
+  $('listLun').innerHTML=mk(DB.invoices.filter(i=>i.status==='lunas').sort((a,b)=>(b.bayar.tgl||'').localeCompare(a.bayar.tgl||'')),$('qLun').value,true);
+}
+
+// ===== Pembayaran =====
+let bayarId=null;
+function bukaBayar(id){
+  const o=DB.invoices.find(i=>i.id===id);if(!o)return;bayarId=id;
+  $('bInfo').innerHTML=`${esc(o.noPro)} · ${esc(o.outlet)}<br><b style="color:var(--txt);font-size:15px">${rp(o.total)}</b>`;
+  $('bTgl').value=today();$('bKet').value='';$('mdBayar').classList.add('show');
+}
+function tutupModal(){$('mdBayar').classList.remove('show');bayarId=null}
+async function prosesBayar(){
+  const o=DB.invoices.find(i=>i.id===bayarId);if(!o)return;
+  const tgl=$('bTgl').value||today();
+  const bayar={tgl,metode:$('bMetode').value,ket:$('bKet').value.trim(),jumlah:o.total};
+  if(online()){
+    busy(true,'Menyimpan pembayaran...');
+    try{const j=await api('payInvoice',{id:o.id,bayar});if(!j.ok)return toast(j.error||'Gagal menyimpan');Object.assign(o,j.inv)}
+    catch(e){return toast('Gagal tersambung. Cek internet lalu coba lagi.')}
+    finally{busy(false)}
+  }else{o.status='lunas';o.bayar=bayar;o.noLunas=nextNo('L',tgl)}
+  save();tutupModal();toast('Invoice lunas dibuat: '+o.noLunas);openView(o.id,'lunas');
+}
+
+// ===== Dokumen =====
+function logoSvg(){return `<svg width="46" height="46" viewBox="0 0 64 64"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7bff"/><stop offset="1" stop-color="#0b3a99"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lg2)"/><text x="10" y="44" font-family="Arial Black,Arial" font-weight="900" font-style="italic" font-size="30" fill="#fff">T</text><text x="27" y="44" font-family="Arial Black,Arial" font-weight="900" font-size="26" fill="#7fe3ff">W</text></svg>`}
+function openView(id,from){
+  const o=DB.invoices.find(i=>i.id===id);if(!o)return;viewId=id;viewFrom=from;
+  const s=DB.setting, lunas=o.status==='lunas';
+  const skList=(s.sk||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  $('doc').innerHTML=`
+   <div class="hero"><div class="top">
+     <div class="brand">${logoSvg()}<div><b>${esc(s.nama)}</b><small>${esc(s.alamat).replace(/\n/g,'<br>')}${s.hp?'<br>WA: '+esc(s.hp):''}${s.web?'<br>'+esc(s.web):''}</small></div></div>
+     <div class="ttl"><h1>${lunas?'INVOICE':'PROFORMA'}</h1><div class="no">${esc(lunas?o.noLunas:o.noPro)}</div>
+       <span class="pill ${lunas?'paid':'unpaid'}">${lunas?'LUNAS':'BELUM LUNAS'}</span></div>
+   </div></div>
+   <div class="body">
+     <div class="meta">
+       <div class="box"><div class="k">Ditagihkan kepada</div><div class="v"><b>${esc(o.outlet)}</b>${o.owner?'<br>'+esc(o.owner):''}${o.hp?'<br>'+esc(o.hp):''}${o.alamat?'<br><span style="white-space:pre-line">'+esc(o.alamat)+'</span>':''}</div></div>
+       ${lunas
+        ?`<div class="box"><div class="k">Tanggal Lunas</div><div class="v"><b>${fmtTgl(o.bayar.tgl)}</b><br>via ${esc(o.bayar.metode)}</div></div>
+          <div class="box"><div class="k">Ref. Proforma</div><div class="v"><b style="font-size:13px">${esc(o.noPro)}</b><br>${fmtTgl(o.tgl)}</div></div>`
+        :`<div class="box"><div class="k">Tanggal</div><div class="v"><b>${fmtTgl(o.tgl)}</b></div></div>
+          <div class="box"><div class="k">Jatuh Tempo</div><div class="v"><b>${fmtTgl(o.jt)}</b></div></div>`}
+     </div>
+     <table><thead><tr><th style="width:34px">#</th><th>Produk</th><th>Periode</th><th class="r">Harga</th></tr></thead>
+       <tbody>${o.items.map((it,i)=>`<tr><td style="color:#64748b">${String(i+1).padStart(2,'0')}</td><td><b>${esc(it.nama)}</b></td><td>${esc(it.periode)}</td><td class="r"><b>${rp(it.harga)}</b></td></tr>`).join('')}</tbody></table>
+     <div class="bottom">
+       <div class="left">${lunas
+         ?`<div class="okbox"><b>Pembayaran diterima</b><br>${fmtTgl(o.bayar.tgl)} melalui ${esc(o.bayar.metode)}${o.bayar.ket?' · '+esc(o.bayar.ket):''}.<br>Terima kasih telah menggunakan TWINS POS.</div>`
+         :`<div class="k" style="margin-bottom:8px">Metode Pembayaran</div><div class="pay">
+            <div class="box"><div class="k">1 · Transfer Bank</div><div class="v">${s.rek?esc(s.rek).replace(/\n/g,'<br>'):'-'}</div></div>
+            <div class="box" style="text-align:center"><div class="k">2 · QRIS</div>${s.qris?`<img src="${s.qris}">`:'<div class="v">-</div>'}</div>
+          </div><div style="font-size:11px;color:#64748b;margin-top:8px">Mohon bayar sebelum ${fmtTgl(o.jt)}. Invoice lunas diterbitkan setelah pembayaran diterima.</div>`}
+       </div>
+       <div class="totalbox">
+         ${o.items.length>1?`<div class="line"><span>Subtotal (${o.items.length} produk)</span><span>${rp(o.total)}</span></div>`:''}
+         ${lunas?`<div class="line"><span>Dibayar</span><span>${rp(o.bayar.jumlah)}</span></div><div class="line"><span>Sisa</span><span>Rp 0</span></div>`:''}
+         <div class="k" style="color:#cfe0ff;margin:8px 0 0">${lunas?'Total Dibayar':'Total Tagihan'}</div>
+         <div class="big">${rp(o.total)}</div>
+       </div>
+     </div>
+     ${o.catatan?`<div class="box" style="margin-top:14px"><div class="k">Catatan</div><div class="v">${esc(o.catatan)}</div></div>`:''}
+     ${skList.length?`<div class="sk"><b style="color:#0f172a;font-size:12px">Syarat &amp; Ketentuan</b><ol>${skList.map(x=>'<li>'+esc(x)+'</li>').join('')}</ol></div>`:''}
+     <div class="sign"><div>Hormat kami,<div class="sp"></div><b>${esc(s.ttd||s.nama)}</b></div></div>
+   </div>
+   <div class="foot">${esc(s.nama)}${s.web?' · '+esc(s.web):''}${s.hp?' · WA '+esc(s.hp):''}</div>`;
+  $('vBayar').classList.toggle('hide',lunas);
+  $('vBayar').onclick=()=>bukaBayar(id);
+  go('view');
+}
+function backFromView(){go(viewFrom)}
+
+// ===== Pengaturan =====
+function fillSetting(){const s=DB.setting;$('sNama').value=s.nama;$('sAlamat').value=s.alamat;$('sHp').value=s.hp;$('sWeb').value=s.web;$('sRek').value=s.rek;$('sTtd').value=s.ttd;$('sPfxP').value=s.pfxP;$('sPfxL').value=s.pfxL;tmpQris=s.qris||'';showQris();tmpProd=(s.produk||[]).map(p=>({...p}));renderProd();$('sSk').value=s.sk||'';fillConn()}
+let tmpProd=[];
+function renderProd(){
+  $('prodList').innerHTML=tmpProd.map((p,i)=>`<div class="item"><div class="grid3">
+    <div><label>Nama Produk</label><input value="${esc(p.nama)}" oninput="tmpProd[${i}].nama=this.value"></div>
+    <div><label>Periode</label><input value="${esc(p.periode)}" oninput="tmpProd[${i}].periode=this.value"></div>
+    <div><label>Harga (Rp)</label><input inputmode="numeric" value="${p.harga?(+p.harga).toLocaleString('id-ID'):''}" oninput="tmpProd[${i}].harga=parseNum(this.value)" onblur="this.value=tmpProd[${i}].harga?tmpProd[${i}].harga.toLocaleString('id-ID'):''"></div>
+    <div><button class="btn red sm" onclick="tmpProd.splice(${i},1);renderProd()">Hapus</button></div>
+  </div></div>`).join('')||'<div class="empty" style="padding:12px">Belum ada produk.</div>';
+}
+let tmpQris='';
+function showQris(){const i=$('sQrisImg');i.src=tmpQris||'';i.classList.toggle('hide',!tmpQris)}
+function pilihQris(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const m=600,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);tmpQris=c.toDataURL('image/jpeg',.9);showQris();toast('QRIS dipilih, tekan Simpan Pengaturan')};im.src=r.result};r.readAsDataURL(f);inp.value=''}
+async function simpanSetting(){
+  DB.setting={nama:$('sNama').value.trim()||'TWINS POS',alamat:$('sAlamat').value.trim(),hp:$('sHp').value.trim(),web:$('sWeb').value.trim(),rek:$('sRek').value.trim(),ttd:$('sTtd').value.trim(),pfxP:$('sPfxP').value.trim()||'PI/TWS',pfxL:$('sPfxL').value.trim()||'INV/TWS',sk:$('sSk').value.trim(),qris:tmpQris,produk:tmpProd.filter(p=>p.nama.trim()).map(p=>({nama:p.nama.trim(),periode:p.periode.trim(),harga:+p.harga||0}))};
+  if(online()){
+    busy(true,'Menyimpan pengaturan...');
+    try{const j=await api('saveSetting',{setting:DB.setting});if(!j.ok)return toast(j.error||'Gagal menyimpan')}
+    catch(e){return toast('Gagal tersambung. Cek internet lalu coba lagi.')}
+    finally{busy(false)}
+  }
+  save();renderProdBtns();toast('Pengaturan tersimpan');
+}
+function fillConn(){$('cUrl').value=CONN.url;$('cTok').value=CONN.token}
+async function simpanConn(){
+  const url=$('cUrl').value.trim(),token=$('cTok').value.trim();
+  if(!url||!token)return toast('Isi URL Web App dan Token');
+  if(!/^https:\/\/script\.google\.com\//.test(url))return toast('URL harus diawali https://script.google.com/');
+  const old=CONN;CONN={url,token};
+  busy(true,'Mengetes koneksi...');
+  try{const j=await api('getAll');if(!j.ok){CONN=old;return toast(j.error||'Koneksi gagal')}}
+  catch(e){CONN=old;return toast('Koneksi gagal. Cek URL Web App.')}
+  finally{busy(false)}
+  try{localStorage.setItem(CKEY,JSON.stringify(CONN))}catch(e){}
+  await syncAll();fillSetting();resetForm();toast('Tersambung ke Google Sheet');
+}
+function putusConn(){
+  if(!confirm('Putuskan koneksi Google Sheet di perangkat ini?'))return;
+  CONN={url:'',token:''};try{localStorage.removeItem(CKEY)}catch(e){}
+  fillConn();setStatus('Lokal (belum tersambung)',false);toast('Koneksi diputus');
+}
+resetForm();
+(async()=>{if(await syncAll())resetForm()})();
+</script>
+</body>
+</html>
